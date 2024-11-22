@@ -33,7 +33,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _getSteps = 0;
 
   // create a HealthFactory for use in the app
-  HealthFactory health = HealthFactory();
+  final health = Health();
 
   Future fetchStepData() async {
     int? steps;
