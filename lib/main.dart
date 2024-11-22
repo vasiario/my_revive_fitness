@@ -82,17 +82,31 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
   /// Запрашиваем разрешение на запись данных
   Future<void> _authorizeHealth() async {
-    final types = [HealthDataType.WORKOUT];
-    final permissions = [HealthDataAccess.WRITE];
+    try {
+      bool isAvailable = await health.isDataTypeAvailable(HealthDataType.WORKOUT);
 
-    bool granted = await health.requestAuthorization(types, permissions: permissions);
+      if (!isAvailable) {
+        _showMessage("Health Connect недоступен. Установите приложение.");
+        return;
+      }
 
-    if (granted) {
-      print("Health permissions granted.");
-    } else {
-      print("Health permissions denied.");
+      final types = [HealthDataType.WORKOUT];
+      final permissions = [HealthDataAccess.WRITE];
+
+      bool granted = await health.requestAuthorization(types, permissions: permissions);
+
+      if (granted) {
+        print("Health permissions granted.");
+      } else {
+        print("Health permissions denied.");
+        _showMessage("Разрешения отклонены.");
+      }
+    } catch (e) {
+      print("Ошибка авторизации Health Connect: $e");
+      _showMessage("Ошибка авторизации: $e");
     }
   }
+
 
   /// Начало тренировки
   Future<void> _startWorkoutSession() async {
@@ -126,6 +140,11 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   /// Сохранение тренировки в Apple Health или Google Fit
   Future<void> _saveWorkoutToHealth() async {
     try {
+      if (workoutStartTime == null || workoutEndTime == null) {
+        _showMessage("Временные метки тренировки недоступны.");
+        return;
+      }
+
       bool success = await health.writeWorkoutData(
         activityType: HealthWorkoutActivityType.YOGA,
         start: workoutStartTime!,
@@ -146,6 +165,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       _showMessage("Ошибка при записи тренировки: $e");
     }
   }
+
 
   /// Форматирование времени в "00:00:00"
   String _formatElapsedTime(int seconds) {
