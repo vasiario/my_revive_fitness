@@ -37,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   health: ^11.1.0
   flutter_health_connect: ^1.2.3
+  pedometer: ^4.0.2
   device_info_plus: ^9.1.2
 
 dev_dependencies:

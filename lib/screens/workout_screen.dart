@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../services/health_service.dart';
-import '../utils/time_formatter.dart';
 
 class WorkoutScreen extends StatefulWidget {
   final String yogaPose;
@@ -18,8 +17,10 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   DateTime? workoutStartTime;
   DateTime? workoutEndTime;
   late Stopwatch stopwatch;
-  late Timer timer;
+  Timer? timer;
   int elapsedSeconds = 0;
+  int steps = 0;
+  double distance = 0.0;
 
   @override
   void initState() {
@@ -32,6 +33,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       isWorkoutActive = true;
       workoutStartTime = DateTime.now();
       elapsedSeconds = 0;
+      steps = 0;
+      distance = 0.0;
     });
     stopwatch = Stopwatch()..start();
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -47,15 +50,24 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       workoutEndTime = DateTime.now();
     });
     stopwatch.stop();
-    timer.cancel();
+    timer?.cancel();
 
     if (workoutStartTime != null && workoutEndTime != null) {
       await healthService.saveWorkoutToHealth(
         workoutStartTime: workoutStartTime!,
         workoutEndTime: workoutEndTime!,
         context: context,
+        isRunning: false,  // для йоги ставим false
+        steps: steps,      // можно оставить 0 для йоги
+        distance: distance, // для йоги обычно 0
       );
     }
+  }
+
+  String _formatTime(int seconds) {
+    int minutes = seconds ~/ 60;
+    int secs = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -67,35 +79,35 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       body: Center(
         child: isWorkoutActive
             ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Тренировка активна',
-                    style: TextStyle(fontSize: 24),
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    'Время: ${formatElapsedTime(elapsedSeconds)}',
-                    style: TextStyle(fontSize: 24),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _endWorkoutSession,
-                    child: Text('Завершить тренировку'),
-                  ),
-                ],
-              )
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Тренировка активна',
+              style: TextStyle(fontSize: 24),
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Время: ${_formatTime(elapsedSeconds)}',
+              style: TextStyle(fontSize: 24),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _endWorkoutSession,
+              child: Text('Завершить тренировку'),
+            ),
+          ],
+        )
             : ElevatedButton(
-                onPressed: _startWorkoutSession,
-                child: Text('Начать тренировку'),
-              ),
+          onPressed: _startWorkoutSession,
+          child: Text('Начать тренировку'),
+        ),
       ),
     );
   }
 
   @override
   void dispose() {
-    if (timer.isActive) timer.cancel();
+    timer?.cancel();
     stopwatch.stop();
     super.dispose();
   }
