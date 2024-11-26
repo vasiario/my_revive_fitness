@@ -2,63 +2,110 @@ import 'package:flutter/material.dart';
 import 'package:health/health.dart';
 
 class HealthService {
-  final health = Health();
+  final Health health = Health();
+  static const int STEPS_THRESHOLD = 10;
 
-  Future<void> authorizeHealth(BuildContext context) async {
+  Future<bool> authorizeHealth(BuildContext context) async {
     try {
-      bool isAvailable =
-          await health.isDataTypeAvailable(HealthDataType.WORKOUT);
+      final types = [
+        HealthDataType.WORKOUT,
+        HealthDataType.STEPS,
+        HealthDataType.DISTANCE_WALKING_RUNNING,
+      ];
 
-      if (!isAvailable) {
-        _showMessage(context, "Health Connect недоступен. Установите приложение.");
-        return;
+      final permissions = [
+        HealthDataAccess.READ_WRITE,
+        HealthDataAccess.READ_WRITE,
+        HealthDataAccess.READ_WRITE,
+      ];
+
+      // Проверяем существующие разрешения
+      bool? hasPermissions = await health.hasPermissions(types, permissions: permissions);
+
+      if (hasPermissions == null || !hasPermissions) {
+        hasPermissions = await health.requestAuthorization(types, permissions: permissions);
       }
 
-      final types = [HealthDataType.WORKOUT];
-      final permissions = [HealthDataAccess.WRITE];
-
-      bool granted = await health.requestAuthorization(types, permissions: permissions);
-
-      if (granted) {
-        print("Health permissions granted.");
-      } else {
-        print("Health permissions denied.");
-        _showMessage(context, "Разрешения отклонены.");
+      if (!hasPermissions) {
+        _showMessage(context, "Требуется разрешение на доступ к данным здоровья");
+        return false;
       }
+
+      return true;
     } catch (e) {
-      print("Ошибка авторизации Health Connect: $e");
-      _showMessage(context, "Ошибка авторизации: $e");
+      print("Ошибка авторизации Health: $e");
+      _showMessage(context, "Ошибка авторизации Health: $e");
+      return false;
     }
   }
 
-  Future<void> saveWorkoutToHealth({
+  Future<int> getSteps(DateTime startTime, DateTime endTime) async {
+    try {
+      List<HealthDataPoint> healthData = await health.getHealthDataFromTypes(
+        startTime: startTime,
+        endTime: endTime,
+        types: [HealthDataType.STEPS],
+      );
+
+      print("Получено ${healthData.length} записей о шагах");
+
+      int steps = 0;
+      for (HealthDataPoint point in healthData) {
+        if (point.value is NumericHealthValue) {
+          int currentSteps = (point.value as NumericHealthValue).numericValue.toInt();
+          if (currentSteps > STEPS_THRESHOLD) {
+            steps += currentSteps;
+            print("Добавлено шагов: $currentSteps (всего: $steps)");
+          }
+        }
+      }
+
+      return steps;
+    } catch (e) {
+      print("Ошибка получения шагов: $e");
+      return 0;
+    }
+  }
+
+  Future<bool> saveWorkoutToHealth({
     required DateTime workoutStartTime,
     required DateTime workoutEndTime,
     required BuildContext context,
+    required bool isRunning,
+    required int steps,
+    required double distance,
   }) async {
     try {
       bool success = await health.writeWorkoutData(
-        activityType: HealthWorkoutActivityType.YOGA,
+        activityType: isRunning ? HealthWorkoutActivityType.RUNNING : HealthWorkoutActivityType.WALKING,
         start: workoutStartTime,
         end: workoutEndTime,
-        totalEnergyBurned: 200,
+        totalEnergyBurned: calculateCalories(steps),
         totalEnergyBurnedUnit: HealthDataUnit.KILOCALORIE,
+        totalDistance: (distance * 1000).round(),
+        totalDistanceUnit: HealthDataUnit.METER,
       );
 
       if (success) {
-        print("Workout saved successfully to Health.");
-        _showMessage(context, "Тренировка успешно записана!");
+        _showMessage(context, "Тренировка успешно сохранена!");
       } else {
-        print("Failed to save workout to Health.");
-        _showMessage(context, "Не удалось записать тренировку.");
+        _showMessage(context, "Не удалось сохранить тренировку");
       }
+
+      return success;
     } catch (e) {
-      print("Error saving workout: $e");
-      _showMessage(context, "Ошибка при записи тренировки: $e");
+      print("Ошибка сохранения тренировки: $e");
+      _showMessage(context, "Ошибка сохранения тренировки: $e");
+      return false;
     }
   }
 
+  int calculateCalories(int steps) {
+    return (steps * 0.04).round();
+  }
+
   void _showMessage(BuildContext context, String message) {
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );

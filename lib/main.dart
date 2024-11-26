@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'screens/yoga_pose_selection_screen.dart';
+import 'screens/workout_selection_screen.dart';
 
 void main() {
-  runApp(YogaWorkoutApp());
+  runApp(WorkoutApp());
 }
 
-class YogaWorkoutApp extends StatelessWidget {
+class WorkoutApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Yoga Workout App',
+      title: 'Workout App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: YogaPoseSelectionScreen(),
+      home: WorkoutSelectionScreen(), // Новый экран
     );
   }
 }
