@@ -146,7 +146,7 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
           workoutStartTime: workoutStartTime!,
           workoutEndTime: endTime,
           context: context,
-          isRunning: true,
+          workoutType: 'running',
           steps: totalSteps,
           distance: distance,
         );

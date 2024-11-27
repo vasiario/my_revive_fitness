@@ -3,16 +3,16 @@ import 'dart:async';
 import '../services/health_service.dart';
 import '../services//layer_calculator.dart';
 
-class WorkoutScreen extends StatefulWidget {
+class YogaWorkoutScreen extends StatefulWidget {
   final String yogaPose;
 
-  WorkoutScreen({required this.yogaPose});
+  YogaWorkoutScreen({required this.yogaPose});
 
   @override
-  _WorkoutScreenState createState() => _WorkoutScreenState();
+  _YogaWorkoutScreenState createState() => _YogaWorkoutScreenState();
 }
 
-class _WorkoutScreenState extends State<WorkoutScreen> {
+class _YogaWorkoutScreenState extends State<YogaWorkoutScreen> {
   final healthService = HealthService();
   bool isWorkoutActive = false;
   DateTime? workoutStartTime;
@@ -66,9 +66,9 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         workoutStartTime: workoutStartTime!,
         workoutEndTime: workoutEndTime!,
         context: context,
-        isRunning: false,  // для йоги ставим false
-        steps: steps,      // обычно 0 для йоги
-        distance: distance, // обычно 0 для йоги
+        workoutType: 'yoga',
+        steps: steps,
+        distance: distance,
       );
     }
   }

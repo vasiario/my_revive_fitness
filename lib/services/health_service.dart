@@ -71,13 +71,29 @@ class HealthService {
     required DateTime workoutStartTime,
     required DateTime workoutEndTime,
     required BuildContext context,
-    required bool isRunning,
+    required String workoutType, // Изменяем параметр для указания типа тренировки
     required int steps,
     required double distance,
   }) async {
     try {
+      // Определяем тип тренировки
+      HealthWorkoutActivityType activityType;
+      switch (workoutType.toLowerCase()) {
+        case 'yoga':
+          activityType = HealthWorkoutActivityType.YOGA;
+          break;
+        case 'running':
+          activityType = HealthWorkoutActivityType.RUNNING;
+          break;
+        case 'walking':
+        default:
+          activityType = HealthWorkoutActivityType.WALKING;
+          break;
+      }
+
+      // Сохраняем тренировку
       bool success = await health.writeWorkoutData(
-        activityType: isRunning ? HealthWorkoutActivityType.RUNNING : HealthWorkoutActivityType.WALKING,
+        activityType: activityType,
         start: workoutStartTime,
         end: workoutEndTime,
         totalEnergyBurned: calculateCalories(steps),
@@ -99,6 +115,7 @@ class HealthService {
       return false;
     }
   }
+
 
   int calculateCalories(int steps) {
     return (steps * 0.04).round();

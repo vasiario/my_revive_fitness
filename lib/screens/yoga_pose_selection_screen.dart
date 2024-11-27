@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'workout_screen.dart';
+import 'yoga_workout_screen.dart';
 
 class YogaPoseSelectionScreen extends StatelessWidget {
   final List<String> yogaPoses = [
@@ -28,7 +28,7 @@ class YogaPoseSelectionScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      WorkoutScreen(yogaPose: yogaPoses[index]),
+                      YogaWorkoutScreen(yogaPose: yogaPoses[index]),
                 ),
               );
             },
