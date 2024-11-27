@@ -71,12 +71,11 @@ class HealthService {
     required DateTime workoutStartTime,
     required DateTime workoutEndTime,
     required BuildContext context,
-    required String workoutType, // Изменяем параметр для указания типа тренировки
+    required String workoutType,
     required int steps,
     required double distance,
   }) async {
     try {
-      // Определяем тип тренировки
       HealthWorkoutActivityType activityType;
       switch (workoutType.toLowerCase()) {
         case 'yoga':
@@ -91,7 +90,6 @@ class HealthService {
           break;
       }
 
-      // Сохраняем тренировку
       bool success = await health.writeWorkoutData(
         activityType: activityType,
         start: workoutStartTime,

@@ -21,6 +21,7 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
   int elapsedSeconds = 0;
   int totalSteps = 0;
   double distance = 0.0; // в километрах
+  int progressPercentage = 0;
 
   int currentLayer = 0;
   int currentSubLayer = 0;
@@ -71,6 +72,7 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
       currentLayer = 0;
       currentSubLayer = 0;
       finalRemainder = 0;
+      progressPercentage = 0;
       workoutStartTime = DateTime.now();
       _initialStepCount = null;
     });
@@ -195,12 +197,25 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
         currentLayer = result[0];
         currentSubLayer = result[1];
         finalRemainder = result[2];
+
+        // Рассчитываем прогресс в процентах до 5 слоя 7 подслоя
+        int totalSubLayers = 7; // Подслоев в каждом слое
+        int targetLayer = 5; // Ориентир на 5 слой
+        int targetSubLayer = 7; // Ориентир на 7 подслой
+
+        int completedLayers = (currentLayer - 1) * totalSubLayers; // Завершенные подслои
+        int completedSubLayers = currentSubLayer - 1; // Завершенные подслои текущего слоя
+        int totalProgressSubLayers = completedLayers + completedSubLayers;
+
+        int targetSubLayers = targetLayer * totalSubLayers + targetSubLayer; // Всего подслоев до цели
+        progressPercentage = ((totalProgressSubLayers / targetSubLayers) * 100).clamp(0, 100).toInt();
       });
     } else {
       setState(() {
         currentLayer = 0;
         currentSubLayer = 0;
         finalRemainder = 0;
+        progressPercentage = 0;
       });
     }
   }
@@ -235,7 +250,7 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: isHealthAvailable ? _startWorkout : null,
-            child: Text('Начать тренировку'),
+            child: Text('Start running'),
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             ),
@@ -271,7 +286,11 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         Text(
-          'Остаток: $finalRemainder%',
+          'Прогресс: $progressPercentage%',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        Text(
+          'Остаток (подслой): $finalRemainder%',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 30),
@@ -311,7 +330,7 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Беговая тренировка'),
+        title: Text('Running'),
       ),
       body: Center(
         child: SingleChildScrollView(

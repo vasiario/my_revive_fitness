@@ -26,6 +26,7 @@ class _YogaWorkoutScreenState extends State<YogaWorkoutScreen> {
   int currentLayer = 0;
   int currentSubLayer = 0;
   int finalRemainder = 0;
+  int progressPercentage = 0;
 
   @override
   void initState() {
@@ -80,6 +81,18 @@ class _YogaWorkoutScreenState extends State<YogaWorkoutScreen> {
       currentLayer = result[0];
       currentSubLayer = result[1];
       finalRemainder = result[2];
+
+      // Рассчитываем прогресс в процентах до 5 слоя 7 подслоя
+      int totalSubLayers = 7; // Подслоев в каждом слое
+      int targetLayer = 5; // Ориентир на 5 слой
+      int targetSubLayer = 7; // Ориентир на 7 подслой
+
+      int completedLayers = (currentLayer - 1) * totalSubLayers; // Завершенные подслои
+      int completedSubLayers = currentSubLayer - 1; // Завершенные подслои текущего слоя
+      int totalProgressSubLayers = completedLayers + completedSubLayers;
+
+      int targetSubLayers = targetLayer * totalSubLayers + targetSubLayer; // Всего подслоев до цели
+      progressPercentage = ((totalProgressSubLayers / targetSubLayers) * 100).clamp(0, 100).toInt();
     });
   }
 
@@ -109,7 +122,11 @@ class _YogaWorkoutScreenState extends State<YogaWorkoutScreen> {
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         Text(
-          'Остаток: $finalRemainder%',
+          'Прогресс: $progressPercentage%',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        Text(
+          'Остаток (подслой): $finalRemainder%',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 20),
@@ -130,7 +147,7 @@ class _YogaWorkoutScreenState extends State<YogaWorkoutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Тренировка: ${widget.yogaPose}'),
+        title: Text('Yoga: ${widget.yogaPose}'),
       ),
       body: Center(
         child: isWorkoutActive

@@ -13,7 +13,7 @@ class WorkoutApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: WorkoutSelectionScreen(), // Новый экран
+      home: WorkoutSelectionScreen(),
     );
   }
 }
