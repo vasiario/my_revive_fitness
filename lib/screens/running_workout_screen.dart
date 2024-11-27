@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:pedometer/pedometer.dart';
 import '../services/health_service.dart';
+import '../services//layer_calculator.dart';
 
 class RunningWorkoutScreen extends StatefulWidget {
   @override
@@ -19,7 +20,11 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
 
   int elapsedSeconds = 0;
   int totalSteps = 0;
-  double distance = 0.0;
+  double distance = 0.0; // в километрах
+
+  int currentLayer = 0;
+  int currentSubLayer = 0;
+  int finalRemainder = 0;
 
   DateTime? workoutStartTime;
   DateTime? pauseStartTime;
@@ -63,6 +68,9 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
       elapsedSeconds = 0;
       totalSteps = 0;
       distance = 0.0;
+      currentLayer = 0;
+      currentSubLayer = 0;
+      finalRemainder = 0;
       workoutStartTime = DateTime.now();
       _initialStepCount = null;
     });
@@ -77,6 +85,7 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
       if (!isPaused && mounted) {
         setState(() {
           elapsedSeconds++;
+          _updateLayers();
         });
       }
     });
@@ -98,7 +107,8 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
         _initialStepCount = event.steps;
       }
       totalSteps = event.steps - _initialStepCount!;
-      distance = totalSteps * 0.000762; // Approximate conversion to kilometers
+      distance = totalSteps * 0.000762; // Примерная конверсия в километры
+      _updateLayers();
     });
   }
 
@@ -173,7 +183,26 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
   }
 
   String _formatDistance() {
-    return '${distance.toStringAsFixed(2)} km';
+    return '${distance.toStringAsFixed(2)} км';
+  }
+
+  void _updateLayers() {
+    if (distance > 0 && elapsedSeconds > 0) {
+      double durationInMinutes = elapsedSeconds / 60.0;
+      List<int> result = LayerCalculator.calculateRunningLayer(distance, durationInMinutes);
+
+      setState(() {
+        currentLayer = result[0];
+        currentSubLayer = result[1];
+        finalRemainder = result[2];
+      });
+    } else {
+      setState(() {
+        currentLayer = 0;
+        currentSubLayer = 0;
+        finalRemainder = 0;
+      });
+    }
   }
 
   void _showMessage(String message) {
@@ -200,13 +229,13 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            isHealthAvailable ? 'Ready to workout' : 'Health is unavailable',
+            isHealthAvailable ? 'Готовы к тренировке' : 'Health недоступен',
             style: TextStyle(fontSize: 18),
           ),
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: isHealthAvailable ? _startWorkout : null,
-            child: Text('Start Workout'),
+            child: Text('Начать тренировку'),
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             ),
@@ -219,18 +248,31 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'Time: ${_formatTime(elapsedSeconds)}',
+          'Время: ${_formatTime(elapsedSeconds)}',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 20),
         Text(
-          'Total Steps: $totalSteps',
+          'Всего шагов: $totalSteps',
           style: TextStyle(fontSize: 24),
         ),
         SizedBox(height: 10),
         Text(
-          'Distance: ${_formatDistance()}',
+          'Дистанция: ${_formatDistance()}',
           style: TextStyle(fontSize: 24),
+        ),
+        SizedBox(height: 30),
+        Text(
+          'Слой: $currentLayer',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        Text(
+          'Подслой: $currentSubLayer',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        Text(
+          'Остаток: $finalRemainder%',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 30),
         Row(
@@ -239,7 +281,7 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
             if (!isPaused)
               ElevatedButton(
                 onPressed: _pauseWorkout,
-                child: Text('Pause'),
+                child: Text('Пауза'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                 ),
@@ -247,14 +289,14 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
             else
               ElevatedButton(
                 onPressed: _resumeWorkout,
-                child: Text('Resume'),
+                child: Text('Продолжить'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                 ),
               ),
             ElevatedButton(
               onPressed: _endWorkout,
-              child: Text('Finish'),
+              child: Text('Завершить'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
               ),
@@ -269,7 +311,7 @@ class _RunningWorkoutScreenState extends State<RunningWorkoutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Running Workout'),
+        title: Text('Беговая тренировка'),
       ),
       body: Center(
         child: SingleChildScrollView(

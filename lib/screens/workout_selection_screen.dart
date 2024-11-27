@@ -7,13 +7,13 @@ class WorkoutSelectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Select Workout Type'),
+        title: Text('Выберите тип тренировки'),
       ),
       body: ListView(
         children: [
           ListTile(
             leading: Icon(Icons.self_improvement),
-            title: Text('Yoga'),
+            title: Text('Йога'),
             onTap: () {
               Navigator.push(
                 context,
@@ -25,7 +25,7 @@ class WorkoutSelectionScreen extends StatelessWidget {
           ),
           ListTile(
             leading: Icon(Icons.directions_run),
-            title: Text('Running'),
+            title: Text('Бег'),
             onTap: () {
               Navigator.push(
                 context,
